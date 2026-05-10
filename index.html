@@ -697,13 +697,28 @@ async function processAndSave() {
       const names= form.getFields().map(x=>x.getName());
       let n=0;
 
+      // Text fields
       if(names.includes('Date'))       {try{form.getTextField('Date').setText(dateFmt);n++;}catch(e){}}
       if(names.includes('Technician')) {try{form.getTextField('Technician').setText(tech);n++;}catch(e){}}
+
+      // Service type checkboxes — check selected, uncheck others
       Object.entries(SVC_FIELDS).forEach(([type,fid])=>{
-        if(names.includes(fid)) try{const cb=form.getCheckBox(fid);type===svc?cb.check():cb.uncheck();n++;}catch(e){}
+        if(names.includes(fid)) try{
+          const cb=form.getCheckBox(fid);
+          if(type===svc){ try{cb.check();}catch(e){} try{cb.select('Yes');}catch(e){} }
+          else { try{cb.uncheck();}catch(e){} }
+          n++;
+        }catch(e){}
       });
+
+      // Task checkboxes
       [...TASKS_3M,...TASKS_12M].forEach(t=>{
-        if(names.includes(t.field)) try{const cb=form.getCheckBox(t.field);checkedFields.has(t.field)?cb.check():cb.uncheck();n++;}catch(e){}
+        if(names.includes(t.field)) try{
+          const cb=form.getCheckBox(t.field);
+          if(checkedFields.has(t.field)){ try{cb.check();}catch(e){} try{cb.select('Yes');}catch(e){} }
+          else { try{cb.uncheck();}catch(e){} }
+          n++;
+        }catch(e){}
       });
 
       const updatedBytes = await pdf.save();
